@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Colorization</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="login" class="page active">
+    <div class="auth-box">
+      <h2>Login</h2>
+      <input id="loginEmail" type="email" placeholder="Email" />
+      <input id="loginPassword" type="password" placeholder="Password" />
+      <div id="loginError" class="error"></div>
+      <button onclick="login()">Login</button>
+      <span class="link" onclick="goTo('forget')">Forget Password?</span>
+      <span class="link" onclick="goTo('signup')">Sign Up</span>
+    </div>
+  </div>
+
+  <div id="signup" class="page">
+    <div class="auth-box">
+      <h2>Sign Up</h2>
+      <input id="signupName" placeholder="Name" />
+      <input id="signupEmail" placeholder="Email" />
+      <input id="signupPassword" type="password" placeholder="Password" />
+      <div id="signupError" class="error"></div>
+      <button onclick="signUp()">Create Account</button>
+      <span class="link" onclick="goTo('login')">Back</span>
+    </div>
+  </div>
+
+  <div id="forget" class="page">
+    <div class="auth-box">
+      <h2>Reset Password</h2>
+      <input id="forgetEmail" placeholder="Enter email" />
+      <div id="forgetError" class="error"></div>
+      <button onclick="sendReset()">Generate Reset Token</button>
+      <span class="link" onclick="goTo('login')">Back</span>
+      <input id="resetToken" placeholder="Paste reset token" />
+      <input id="newResetPassword" type="password" placeholder="New password" />
+      <button onclick="completeReset()">Reset Password</button>
+    </div>
+  </div>
+
+  <div id="app" class="page">
+    <div class="app">
+      <div class="card header topbar">
+        <div class="topbar-left">
+          <div class="topbar-brand">AI Colorization</div>
+          <div class="topbar-sub">Gray image upload with backend inference</div>
+        </div>
+        <div class="topbar-nav">
+          <button class="nav-link active" onclick="show('home', this)">Home</button>
+          <button class="nav-link" onclick="show('upload', this)">Upload</button>
+          <button class="nav-link" onclick="show('history', this)">History</button>
+          <button class="nav-link" onclick="show('feedback', this)">Feedback</button>
+          <button class="nav-link" onclick="show('settings', this)">Settings</button>
+          <button id="adminNavBtn" class="nav-link hidden" onclick="show('admin', this)">Admin</button>
+        </div>
+        <div class="topbar-user">
+          <button class="user-btn" onclick="toggleUserMenu(event)">
+            <span class="user-avatar" id="userAvatar">U</span>
+            <span class="user-name" id="userName">User</span>
+            <span class="user-caret">&#9662;</span>
+          </button>
+          <div id="userMenu" class="user-menu">
+            <div class="user-email" id="userEmail">user@example.com</div>
+            <button class="btn-secondary" onclick="show('settings'); closeUserMenu()">Settings</button>
+            <button class="danger-btn" onclick="doLogout(); closeUserMenu()">Logout</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="home" class="section active card">
+        <p>Last Colorized Result</p>
+        <div class="image-grid two-col">
+          <div>
+            <div class="panel-title">Original</div>
+            <div class="img-box"><img id="originalPreview"><span id="originalPlaceholder">No image yet</span></div>
+          </div>
+          <div>
+            <div class="panel-title">Colorized</div>
+            <div class="img-box"><img id="preview"><span id="placeholder">No result yet</span></div>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat blue"><h2 id="total">0</h2>Images</div>
+          <div class="stat purple"><h2 id="week">0</h2>This Week</div>
+        </div>
+        <div class="activity">
+          <div class="panel-title">Recent Activity</div>
+          <ul id="activityList" class="activity-list"></ul>
+          <div id="activityEmpty" class="empty-state">No activity yet. Upload an image to get started.</div>
+        </div>
+      </div>
+
+      <div id="upload" class="section card">
+        <div class="upload-box">
+          <input type="file" id="file" accept="image/*" onchange="showLocalPreview(event)" />
+          <p>Upload grayscale image</p>
+        </div>
+        <button onclick="upload()">Colorize</button>
+      </div>
+
+      <div id="history" class="section card">
+        <div id="empty" class="empty-state">No uploads yet. Try uploading an image.</div>
+        <div id="historyCards" class="history-grid"></div>
+      </div>
+
+      <div id="feedback" class="section card">
+        <h3>Feedback</h3>
+        <p>Help us improve the app</p>
+        <textarea id="feedbackText" placeholder="Write your feedback here..."></textarea>
+        <p>Rating</p>
+        <div id="stars">
+          <span onclick="rate(1)">&#9733;</span>
+          <span onclick="rate(2)">&#9733;</span>
+          <span onclick="rate(3)">&#9733;</span>
+          <span onclick="rate(4)">&#9733;</span>
+          <span onclick="rate(5)">&#9733;</span>
+        </div>
+        <button onclick="submitFeedback()">Submit Feedback</button>
+      </div>
+
+      <div id="settings" class="section card">
+        <h3>Settings</h3>
+        <p>Manage your account and preferences</p>
+        <div class="settings-grid">
+          <div class="panel">
+            <div class="panel-title">Profile</div>
+            <div class="profile-row">
+              <div class="avatar" id="profileAvatar">U</div>
+              <div>
+                <div id="profileName" class="strong">User</div>
+                <div id="profileEmail" class="subtle">user@example.com</div>
+              </div>
+            </div>
+            <label>Name</label>
+            <input id="profileNameInput" type="text" />
+            <label>Email</label>
+            <input id="profileEmailInput" type="email" />
+            <button onclick="saveProfile()">Save Profile</button>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Preferences</div>
+            <div class="toggle-row">
+              <div>
+                <div class="strong">Dark Mode</div>
+                <div class="subtle">Enable dark theme</div>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="darkModeToggle" onchange="toggleSetting('dark_mode', this.checked)">
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <div>
+                <div class="strong">Notifications</div>
+                <div class="subtle">Receive app updates</div>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="notificationsToggle" onchange="toggleSetting('notifications', this.checked)">
+                <span class="slider"></span>
+              </label>
+            </div>
+            <label>Current Password</label>
+            <input id="currentPassword" type="password" />
+            <label>New Password</label>
+            <input id="newPassword" type="password" />
+            <button onclick="changePassword()">Change Password</button>
+            <button class="danger-btn" onclick="doLogout()">Logout</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="admin" class="section card hidden">
+        <h3>Admin Dashboard</h3>
+        <p>Real backend data</p>
+        <div class="admin-tabs">
+          <button class="admin-tab active" onclick="showAdminTab('admin-overview', this)">Overview</button>
+          <button class="admin-tab" onclick="showAdminTab('admin-users', this)">Users</button>
+          <button class="admin-tab" onclick="showAdminTab('admin-images', this)">Images</button>
+          <button class="admin-tab" onclick="showAdminTab('admin-feedback', this)">Feedback</button>
+        </div>
+
+        <div id="admin-overview" class="admin-page active">
+          <div class="stats-grid four">
+            <div class="stat-box"><span id="adminTotalUsers">0</span><br><small>Total Users</small></div>
+            <div class="stat-box"><span id="adminTotalImages">0</span><br><small>Total Images</small></div>
+            <div class="stat-box"><span id="adminTotalFeedback">0</span><br><small>Feedback Count</small></div>
+            <div class="stat-box"><span id="adminAvgProcessing">0</span><br><small>Avg Processing Time</small></div>
+          </div>
+          <div class="status-list">
+            <div class="status-row"><span>API Server</span><span id="apiStatus">-</span></div>
+            <div class="status-row"><span>Database</span><span id="dbStatus">-</span></div>
+            <div class="status-row"><span>AI Model</span><span id="modelStatus">-</span></div>
+          </div>
+        </div>
+
+        <div id="admin-users" class="admin-page">
+          <div class="search-row">
+            <input id="userSearch" class="search-input" placeholder="Search users by name or email" oninput="loadAdminUsers()" />
+          </div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Name</th><th>Email</th><th>Role</th><th>Images</th><th>Feedback</th>
+              </tr>
+            </thead>
+            <tbody id="usersBody"></tbody>
+          </table>
+        </div>
+
+        <div id="admin-images" class="admin-page">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th><th>User</th><th>File</th><th>Status</th><th>Processing</th>
+              </tr>
+            </thead>
+            <tbody id="imagesBody"></tbody>
+          </table>
+        </div>
+
+        <div id="admin-feedback" class="admin-page">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>User ID</th><th>Rating</th><th>Message</th><th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="feedbackBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+  <div id="pageLoader" class="page-loader">
+    <div class="spinner"></div>
+    <div>Loading...</div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
