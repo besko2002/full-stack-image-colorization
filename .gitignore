@@ -1,0 +1,12 @@
+# Python virtual environment and bytecode
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Local SQLite database (recreated on startup by db.create_all())
+backend/instance/
+
+# Uploaded and generated images (directories are recreated by config.py)
+backend/static/originals/
+backend/static/outputs/
